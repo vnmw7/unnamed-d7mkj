@@ -1,25 +1,24 @@
 {
-  "name": "unnamed-d7mkj",
+  "name": "moka-day",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "workspaces": [
+    "apps/*",
+    "experiences/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "oxlint",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "dev:hub": "cd apps/hub && bun run dev",
+    "dev:2026": "cd experiences/2026 && bun run dev",
+    "build": "bun scripts/build-site.ts",
+    "build:hub": "cd apps/hub && bun run build",
+    "build:2026": "cd experiences/2026 && bun run build",
+    "typecheck": "tsc -b",
+    "lint": "oxlint"
   },
   "devDependencies": {
-    "@types/node": "^24.13.3",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.7",
-    "@vitejs/plugin-react": "^6.1.1",
+    "@types/bun": "^1.4.2",
     "oxlint": "^1.81.0",
-    "typescript": "~6.0.2",
-    "vite": "^8.3.0"
+    "typescript": "~6.0.2"
   }
 }
