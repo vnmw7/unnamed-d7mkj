@@ -1,122 +1,101 @@
+import { Canvas } from '@react-three/fiber'
 import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import { CameraRig } from './input/CameraRig'
+import { Room } from './scene/Room'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+type ExperienceMode = 'intro' | 'gyro' | 'drag'
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href={`${import.meta.env.BASE_URL}icons.svg#documentation-icon`}></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href={`${import.meta.env.BASE_URL}icons.svg#social-icon`}></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href={`${import.meta.env.BASE_URL}icons.svg#github-icon`}></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href={`${import.meta.env.BASE_URL}icons.svg#discord-icon`}></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href={`${import.meta.env.BASE_URL}icons.svg#x-icon`}></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                    <use href={`${import.meta.env.BASE_URL}icons.svg#bluesky-icon`}></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+type OrientationEventConstructor = typeof DeviceOrientationEvent & {
+  requestPermission?: () => Promise<'granted' | 'denied'>
 }
 
-export default App
+export default function App() {
+  const [mode, setMode] = useState<ExperienceMode>('intro')
+  const [recenterToken, setRecenterToken] = useState(0)
+
+  async function enterRoom() {
+    if (!('DeviceOrientationEvent' in window)) {
+      setMode('drag')
+      return
+    }
+
+    const OrientationEvent =
+      DeviceOrientationEvent as OrientationEventConstructor
+
+    try {
+      if (typeof OrientationEvent.requestPermission === 'function') {
+        const permission = await OrientationEvent.requestPermission()
+
+        setMode(permission === 'granted' ? 'gyro' : 'drag')
+        return
+      }
+
+      setMode('gyro')
+    } catch {
+      setMode('drag')
+    }
+  }
+
+  const active = mode !== 'intro'
+
+  return (
+    <main className="experience">
+      <Canvas
+        dpr={[1, 1.5]}
+        camera={{
+          position: [0, 1.6, 0],
+          fov: 70,
+          near: 0.05,
+          far: 30,
+        }}
+      >
+        <color attach="background" args={['#efe6f0']} />
+
+        <Room />
+
+        <CameraRig
+          gyroEnabled={mode === 'gyro'}
+          recenterToken={recenterToken}
+        />
+      </Canvas>
+
+      {!active && (
+        <div className="enter-screen">
+          <div className="enter-card">
+            <p className="eyebrow">Moka Day · 2026</p>
+
+            <h1>Moka's Room</h1>
+
+            <p>
+              Move your phone around to explore the room in 360°.
+              You can also drag the screen.
+            </p>
+
+            <button type="button" onClick={enterRoom}>
+              Enter room
+            </button>
+          </div>
+        </div>
+      )}
+
+      {active && (
+        <>
+          <div className="experience-hint">
+            {mode === 'gyro'
+              ? 'Move your phone or drag to look around'
+              : 'Drag to look around'}
+          </div>
+
+          <button
+            type="button"
+            className="recenter"
+            onClick={() => setRecenterToken((value) => value + 1)}
+          >
+            Recenter
+          </button>
+        </>
+      )}
+    </main>
+  )
+}
