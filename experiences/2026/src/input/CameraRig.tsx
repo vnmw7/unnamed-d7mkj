@@ -281,8 +281,8 @@ export function CameraRig({
         .invert()
 
       relativeSensor.current
-        .copy(latestSensor.current)
-        .multiply(inverseBaseline.current)
+        .copy(inverseBaseline.current)
+        .multiply(latestSensor.current)
 
       targetQuaternion.current
         .copy(touchQuaternion.current)
