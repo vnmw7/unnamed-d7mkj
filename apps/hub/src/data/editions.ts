@@ -15,7 +15,7 @@ export const editions: Edition[] = [
   {
     year: 2026,
     slug: '2026',
-    title: "Moka's Room",
+    title: "Floating Messages",
     href: '/2026/',
     status: 'current',
     releasedAt: '2026-10-08',
