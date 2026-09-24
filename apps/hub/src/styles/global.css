@@ -265,6 +265,23 @@ a:focus-visible {
   color: var(--color-text-muted);
 }
 
+.not-found {
+  text-align: center;
+  padding: 4rem 0;
+}
+
+.not-found-title {
+  margin: 0;
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: var(--color-accent);
+}
+
+.not-found-text {
+  margin: 0.5rem 0 2rem;
+  color: var(--color-text-muted);
+}
+
 @media (max-width: 560px) {
   .site-main {
     width: min(1040px, 100% - 2rem);
