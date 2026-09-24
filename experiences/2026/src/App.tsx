@@ -65,7 +65,7 @@ export default function App() {
           <div className="enter-card">
             <p className="eyebrow">Moka Day · 2026</p>
 
-            <h1>Moka's Room</h1>
+            <h1>Unnamed Project</h1>
 
             <p>
               Move your phone around to explore the room in 360°.

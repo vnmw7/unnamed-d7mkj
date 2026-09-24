@@ -4,15 +4,15 @@ export function Room() {
       <ambientLight intensity={1.3} />
 
       <pointLight
-        position={[0, 2.4, 0]}
+        position={[0, 4, 0]}
         intensity={35}
-        distance={10}
+        distance={15}
         decay={2}
       />
 
       {/* Front */}
-      <mesh position={[0, 1.5, -4]}>
-        <planeGeometry args={[8, 3]} />
+      <mesh position={[0, 2.5, -6]}>
+        <planeGeometry args={[12, 5]} />
         <meshStandardMaterial
           color="#e7c6d8"
           roughness={0.9}
@@ -21,10 +21,10 @@ export function Room() {
 
       {/* Back */}
       <mesh
-        position={[0, 1.5, 4]}
+        position={[0, 2.5, 6]}
         rotation={[0, Math.PI, 0]}
       >
-        <planeGeometry args={[8, 3]} />
+        <planeGeometry args={[12, 5]} />
         <meshStandardMaterial
           color="#cfe4dc"
           roughness={0.9}
@@ -33,10 +33,10 @@ export function Room() {
 
       {/* Left */}
       <mesh
-        position={[-4, 1.5, 0]}
+        position={[-6, 2.5, 0]}
         rotation={[0, Math.PI / 2, 0]}
       >
-        <planeGeometry args={[8, 3]} />
+        <planeGeometry args={[12, 5]} />
         <meshStandardMaterial
           color="#d8cfeb"
           roughness={0.9}
@@ -45,10 +45,10 @@ export function Room() {
 
       {/* Right */}
       <mesh
-        position={[4, 1.5, 0]}
+        position={[6, 2.5, 0]}
         rotation={[0, -Math.PI / 2, 0]}
       >
-        <planeGeometry args={[8, 3]} />
+        <planeGeometry args={[12, 5]} />
         <meshStandardMaterial
           color="#ead2bd"
           roughness={0.9}
@@ -60,7 +60,7 @@ export function Room() {
         position={[0, 0, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
       >
-        <planeGeometry args={[8, 8]} />
+        <planeGeometry args={[12, 12]} />
         <meshStandardMaterial
           color="#d9cbbd"
           roughness={1}
@@ -69,10 +69,10 @@ export function Room() {
 
       {/* Ceiling */}
       <mesh
-        position={[0, 3, 0]}
+        position={[0, 5, 0]}
         rotation={[Math.PI / 2, 0, 0]}
       >
-        <planeGeometry args={[8, 8]} />
+        <planeGeometry args={[12, 12]} />
         <meshStandardMaterial
           color="#f4edf1"
           roughness={1}
