@@ -14,11 +14,16 @@
     "build:hub": "cd apps/hub && bun run build",
     "build:2026": "cd experiences/2026 && bun run build",
     "typecheck": "tsc -b",
-    "lint": "oxlint"
+    "lint": "oxlint",
+    "fan-letters:sample": "bun scripts/fan-letters/make-sample.ts",
+    "fan-letters:build": "bun scripts/fan-letters/build.ts",
+    "fan-letters:publish": "bun scripts/fan-letters/publish.ts"
   },
   "devDependencies": {
     "@types/bun": "^1.4.2",
+    "aws4fetch": "^1.0.20",
     "oxlint": "^1.81.0",
+    "sharp": "^0.35.4",
     "typescript": "~6.0.2"
   }
 }
