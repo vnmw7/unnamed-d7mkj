@@ -10,9 +10,13 @@ import {
 interface CameraRigProps {
   gyroEnabled: boolean
   recenterToken: number
+  paused?: boolean
+  onTap?: (clientX: number, clientY: number) => void
 }
 
 const screenAxis = new Vector3(0, 0, 1)
+
+const tapMaxMovementPx = 6
 
 const deviceToCamera = new Quaternion(
   -Math.sqrt(0.5),
@@ -70,8 +74,21 @@ function getDeviceQuaternion(
 export function CameraRig({
   gyroEnabled,
   recenterToken,
+  paused,
+  onTap,
 }: CameraRigProps) {
   const { camera, gl } = useThree()
+
+  const pausedRef = useRef(paused ?? false)
+  const onTapRef = useRef(onTap)
+
+  useEffect(() => {
+    pausedRef.current = paused ?? false
+  }, [paused])
+
+  useEffect(() => {
+    onTapRef.current = onTap
+  }, [onTap])
 
   const latestSensor = useRef(new Quaternion())
   const baseline = useRef<Quaternion | null>(null)
@@ -92,6 +109,12 @@ export function CameraRig({
   const previousPointer = useRef({
     x: 0,
     y: 0,
+  })
+
+  const tapStart = useRef({
+    x: 0,
+    y: 0,
+    valid: false,
   })
 
   const sensorReady = useRef(false)
@@ -166,6 +189,12 @@ export function CameraRig({
         y: event.clientY,
       }
 
+      tapStart.current = {
+        x: event.clientX,
+        y: event.clientY,
+        valid: true,
+      }
+
       element.setPointerCapture(event.pointerId)
     }
 
@@ -201,6 +230,7 @@ export function CameraRig({
 
     const finishPointer = (
       event: PointerEvent,
+      cancelled: boolean,
     ) => {
       if (event.pointerId !== pointerId.current) {
         return
@@ -208,6 +238,28 @@ export function CameraRig({
 
       dragging.current = false
       pointerId.current = null
+
+      if (
+        !cancelled &&
+        tapStart.current.valid &&
+        !pausedRef.current &&
+        onTapRef.current
+      ) {
+        const movedX =
+          event.clientX - tapStart.current.x
+
+        const movedY =
+          event.clientY - tapStart.current.y
+
+        if (
+          Math.hypot(movedX, movedY) <=
+          tapMaxMovementPx
+        ) {
+          onTapRef.current(event.clientX, event.clientY)
+        }
+      }
+
+      tapStart.current.valid = false
 
       if (element.hasPointerCapture(event.pointerId)) {
         element.releasePointerCapture(
@@ -226,14 +278,20 @@ export function CameraRig({
       onPointerMove,
     )
 
+    const finishListenerUp = (event: PointerEvent) =>
+      finishPointer(event, false)
+
+    const finishListenerCancel = (event: PointerEvent) =>
+      finishPointer(event, true)
+
     element.addEventListener(
       'pointerup',
-      finishPointer,
+      finishListenerUp,
     )
 
     element.addEventListener(
       'pointercancel',
-      finishPointer,
+      finishListenerCancel,
     )
 
     return () => {
@@ -249,17 +307,21 @@ export function CameraRig({
 
       element.removeEventListener(
         'pointerup',
-        finishPointer,
+        finishListenerUp,
       )
 
       element.removeEventListener(
         'pointercancel',
-        finishPointer,
+        finishListenerCancel,
       )
     }
   }, [gl])
 
   useFrame((_, delta) => {
+    if (pausedRef.current) {
+      return
+    }
+
     touchEuler.current.set(
       touchPitch.current,
       touchYaw.current,
