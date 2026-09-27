@@ -1,7 +1,11 @@
 import { Canvas } from '@react-three/fiber'
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { CameraRig } from './input/CameraRig'
 import { Room } from './scene/Room'
+import { FanLetterOrbit } from './scene/fan-letters/FanLetterOrbit'
+import { FanLetterViewer } from './scene/fan-letters/FanLetterViewer'
+import { loadFanLetterIndex } from './scene/fan-letters/loader'
+import type { FanLetterRecord } from './scene/fan-letters/types'
 import './App.css'
 
 type ExperienceMode = 'intro' | 'gyro' | 'drag'
@@ -13,6 +17,23 @@ type OrientationEventConstructor = typeof DeviceOrientationEvent & {
 export default function App() {
   const [mode, setMode] = useState<ExperienceMode>('intro')
   const [recenterToken, setRecenterToken] = useState(0)
+  const [selectedLetter, setSelectedLetter] =
+    useState<FanLetterRecord | null>(null)
+
+  const tapHandlerRef = useRef<((clientX: number, clientY: number) => void) | null>(null)
+
+  const registerTapHandler = useCallback(
+    (handler: ((clientX: number, clientY: number) => void) | null) => {
+      tapHandlerRef.current = handler
+    },
+    [],
+  )
+
+  // Fetch the fan-letter index during the intro screen so the first atlas
+  // pages are usually resident before the user enters the room.
+  useEffect(() => {
+    void loadFanLetterIndex()
+  }, [])
 
   async function enterRoom() {
     if (!('DeviceOrientationEvent' in window)) {
@@ -38,6 +59,7 @@ export default function App() {
   }
 
   const active = mode !== 'intro'
+  const viewerOpen = selectedLetter !== null
 
   return (
     <main className="experience">
@@ -54,9 +76,19 @@ export default function App() {
 
         <Room />
 
+        <FanLetterOrbit
+          paused={viewerOpen}
+          onLetterSelected={setSelectedLetter}
+          registerTapHandler={registerTapHandler}
+        />
+
         <CameraRig
           gyroEnabled={mode === 'gyro'}
           recenterToken={recenterToken}
+          paused={viewerOpen}
+          onTap={(clientX, clientY) => {
+            tapHandlerRef.current?.(clientX, clientY)
+          }}
         />
       </Canvas>
 
@@ -83,8 +115,8 @@ export default function App() {
         <>
           <div className="experience-hint">
             {mode === 'gyro'
-              ? 'Move your phone or drag to look around'
-              : 'Drag to look around'}
+              ? 'Move your phone or drag to look around · tap a letter to read it'
+              : 'Drag to look around · tap a letter to read it'}
           </div>
 
           <button
@@ -95,6 +127,13 @@ export default function App() {
             Recenter
           </button>
         </>
+      )}
+
+      {selectedLetter && (
+        <FanLetterViewer
+          record={selectedLetter}
+          onClose={() => setSelectedLetter(null)}
+        />
       )}
     </main>
   )
