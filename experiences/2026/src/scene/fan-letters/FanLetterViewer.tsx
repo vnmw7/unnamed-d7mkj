@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { resolveUrl } from './loader'
 import type { FanLetterRecord } from './types'
 
@@ -17,6 +17,7 @@ export function FanLetterViewer({
   onClose,
 }: FanLetterViewerProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     closeButtonRef.current?.focus()
@@ -48,7 +49,8 @@ export function FanLetterViewer({
         onClick={onClose}
       />
 
-      <figure className="letter-viewer-card">
+      <figure className="letter-viewer-card" style={{ minHeight: '200px' }}>
+        {!loaded && <div className="letter-viewer-spinner" aria-label="Loading" />}
         <img
           src={resolveUrl(record.fullUrl)}
           alt={
@@ -57,9 +59,11 @@ export function FanLetterViewer({
               : 'Fan letter'
           }
           decoding="async"
+          onLoad={() => setLoaded(true)}
+          style={{ opacity: loaded ? 1 : 0, transition: 'opacity 0.2s ease-in-out' }}
         />
 
-        {record.author && (
+        {record.author && loaded && (
           <figcaption>— {record.author}</figcaption>
         )}
 

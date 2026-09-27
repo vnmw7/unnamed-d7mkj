@@ -230,6 +230,22 @@
   }
 }
 
+.letter-viewer-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgb(255 255 255 / 20%);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: letter-viewer-spin 1s linear infinite;
+  margin: auto 0;
+}
+
+@keyframes letter-viewer-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .letter-viewer,
   .letter-viewer-card {
