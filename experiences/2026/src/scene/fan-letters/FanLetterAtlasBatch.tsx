@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef } from 'react'
 import {
   DynamicDrawUsage,
   InstancedBufferAttribute,
+  Sphere,
+  Vector3,
   type InstancedMesh,
   type PlaneGeometry,
   type Texture,
@@ -65,6 +67,8 @@ export function FanLetterAtlasBatch({
         1,
       ),
     )
+
+    mesh.boundingSphere = new Sphere(new Vector3(), 100)
 
     registerMesh(pageId, mesh)
 

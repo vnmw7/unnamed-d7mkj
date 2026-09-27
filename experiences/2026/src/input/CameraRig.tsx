@@ -219,10 +219,10 @@ export function CameraRig({
         y: event.clientY,
       }
 
-      touchYaw.current -= dx * 0.003
+      touchYaw.current += dx * 0.003
 
       touchPitch.current = MathUtils.clamp(
-        touchPitch.current - dy * 0.003,
+        touchPitch.current + dy * 0.003,
         -Math.PI / 2 + 0.08,
         Math.PI / 2 - 0.08,
       )
