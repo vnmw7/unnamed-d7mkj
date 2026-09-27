@@ -16,7 +16,15 @@ interface CameraRigProps {
 
 const screenAxis = new Vector3(0, 0, 1)
 
+const forwardVector = new Vector3()
+
 const tapMaxMovementPx = 6
+
+// Below this horizontal forward length the heading is unreliable
+// (phone pointing near straight up/down), so yaw stops updating.
+const minYawHorizontal = 0.08
+
+const pitchLimit = Math.PI / 2 - 0.08
 
 const deviceToCamera = new Quaternion(
   -Math.sqrt(0.5),
@@ -91,15 +99,22 @@ export function CameraRig({
   }, [onTap])
 
   const latestSensor = useRef(new Quaternion())
-  const baseline = useRef<Quaternion | null>(null)
 
-  const relativeSensor = useRef(new Quaternion())
-  const inverseBaseline = useRef(new Quaternion())
+  // Yaw is tracked as an unwrapped accumulated heading so repeated
+  // full revolutions stay continuous across the 0°/360° boundary.
+  // yawBaseline marks which accumulated heading currently faces the
+  // front of the room; pitch has deliberately no baseline, so the
+  // camera keeps the phone's real up/down angle (including the angle
+  // it was held at when the gyro started).
+  const yawBaseline = useRef<number | null>(null)
+  const previousRawYaw = useRef<number | null>(null)
+  const accumulatedYaw = useRef(0)
 
-  const touchQuaternion = useRef(new Quaternion())
+  const sensorPitch = useRef(0)
+
+  const targetEuler = useRef(new Euler(0, 0, 0, 'YXZ'))
   const targetQuaternion = useRef(new Quaternion())
 
-  const touchEuler = useRef(new Euler(0, 0, 0, 'YXZ'))
   const touchYaw = useRef(0)
   const touchPitch = useRef(0)
 
@@ -121,7 +136,10 @@ export function CameraRig({
 
   useEffect(() => {
     if (!gyroEnabled) {
-      baseline.current = null
+      yawBaseline.current = null
+      previousRawYaw.current = null
+      accumulatedYaw.current = 0
+      sensorPitch.current = 0
       sensorReady.current = false
       return
     }
@@ -142,9 +160,44 @@ export function CameraRig({
         latestSensor.current,
       )
 
-      if (!baseline.current) {
-        baseline.current =
-          latestSensor.current.clone()
+      forwardVector
+        .set(0, 0, -1)
+        .applyQuaternion(latestSensor.current)
+
+      const horizontal = Math.hypot(
+        forwardVector.x,
+        forwardVector.z,
+      )
+
+      sensorPitch.current = Math.atan2(
+        forwardVector.y,
+        horizontal,
+      )
+
+      if (horizontal > minYawHorizontal) {
+        const rawYaw = Math.atan2(
+          -forwardVector.x,
+          -forwardVector.z,
+        )
+
+        if (previousRawYaw.current === null) {
+          previousRawYaw.current = rawYaw
+        } else {
+          const rawDelta =
+            rawYaw - previousRawYaw.current
+
+          accumulatedYaw.current += Math.atan2(
+            Math.sin(rawDelta),
+            Math.cos(rawDelta),
+          )
+
+          previousRawYaw.current = rawYaw
+        }
+
+        if (yawBaseline.current === null) {
+          yawBaseline.current =
+            accumulatedYaw.current
+        }
       }
 
       sensorReady.current = true
