@@ -1,18 +1,21 @@
+import { ROOM } from './roomConfig'
+import { TrackingMarkers } from './tracking-markers/TrackingMarkers'
+
 export function Room() {
   return (
     <>
-      <ambientLight intensity={1.3} />
+      <ambientLight intensity={4} />
 
       <pointLight
         position={[0, 4, 0]}
-        intensity={35}
+        intensity={80}
         distance={15}
         decay={2}
       />
 
       {/* Front */}
-      <mesh position={[0, 2.5, -6]}>
-        <planeGeometry args={[12, 5]} />
+      <mesh position={[0, ROOM.halfHeight, -ROOM.halfDepth]}>
+        <planeGeometry args={[ROOM.width, ROOM.height]} />
         <meshStandardMaterial
           color="#ffffff"
           roughness={0.9}
@@ -21,10 +24,10 @@ export function Room() {
 
       {/* Back */}
       <mesh
-        position={[0, 2.5, 6]}
+        position={[0, ROOM.halfHeight, ROOM.halfDepth]}
         rotation={[0, Math.PI, 0]}
       >
-        <planeGeometry args={[12, 5]} />
+        <planeGeometry args={[ROOM.width, ROOM.height]} />
         <meshStandardMaterial
           color="#ffffff"
           roughness={0.9}
@@ -33,10 +36,10 @@ export function Room() {
 
       {/* Left */}
       <mesh
-        position={[-6, 2.5, 0]}
+        position={[-ROOM.halfWidth, ROOM.halfHeight, 0]}
         rotation={[0, Math.PI / 2, 0]}
       >
-        <planeGeometry args={[12, 5]} />
+        <planeGeometry args={[ROOM.depth, ROOM.height]} />
         <meshStandardMaterial
           color="#ffffff"
           roughness={0.9}
@@ -45,10 +48,10 @@ export function Room() {
 
       {/* Right */}
       <mesh
-        position={[6, 2.5, 0]}
+        position={[ROOM.halfWidth, ROOM.halfHeight, 0]}
         rotation={[0, -Math.PI / 2, 0]}
       >
-        <planeGeometry args={[12, 5]} />
+        <planeGeometry args={[ROOM.depth, ROOM.height]} />
         <meshStandardMaterial
           color="#ffffff"
           roughness={0.9}
@@ -60,24 +63,26 @@ export function Room() {
         position={[0, 0, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
       >
-        <planeGeometry args={[12, 12]} />
+        <planeGeometry args={[ROOM.width, ROOM.depth]} />
         <meshStandardMaterial
-          color="#ffffff"
+          color="#e9e9e9"
           roughness={1}
         />
       </mesh>
 
       {/* Ceiling */}
       <mesh
-        position={[0, 5, 0]}
+        position={[0, ROOM.height, 0]}
         rotation={[Math.PI / 2, 0, 0]}
       >
-        <planeGeometry args={[12, 12]} />
+        <planeGeometry args={[ROOM.width, ROOM.depth]} />
         <meshStandardMaterial
           color="#ffffff"
           roughness={1}
         />
       </mesh>
+
+      <TrackingMarkers />
     </>
   )
 }
