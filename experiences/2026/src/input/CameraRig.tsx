@@ -218,14 +218,14 @@ export function CameraRig({
     }
   }, [gyroEnabled])
 
+  // Recenter is yaw-only: it redefines the horizontal front of the
+  // room and clears drag offsets, but never touches the phone's
+  // physical pitch.
   useEffect(() => {
     touchYaw.current = 0
     touchPitch.current = 0
 
-    if (sensorReady.current) {
-      baseline.current =
-        latestSensor.current.clone()
-    }
+    yawBaseline.current = accumulatedYaw.current
   }, [recenterToken])
 
   useEffect(() => {
@@ -276,8 +276,8 @@ export function CameraRig({
 
       touchPitch.current = MathUtils.clamp(
         touchPitch.current + dy * 0.003,
-        -Math.PI / 2 + 0.08,
-        Math.PI / 2 - 0.08,
+        -pitchLimit,
+        pitchLimit,
       )
     }
 
@@ -375,38 +375,31 @@ export function CameraRig({
       return
     }
 
-    touchEuler.current.set(
-      touchPitch.current,
-      touchYaw.current,
+    const gyroYaw =
+      yawBaseline.current === null
+        ? 0
+        : accumulatedYaw.current -
+          yawBaseline.current
+
+    const finalYaw =
+      gyroYaw + touchYaw.current
+
+    const finalPitch = MathUtils.clamp(
+      sensorPitch.current + touchPitch.current,
+      -pitchLimit,
+      pitchLimit,
+    )
+
+    targetEuler.current.set(
+      finalPitch,
+      finalYaw,
       0,
       'YXZ',
     )
 
-    touchQuaternion.current.setFromEuler(
-      touchEuler.current,
+    targetQuaternion.current.setFromEuler(
+      targetEuler.current,
     )
-
-    if (
-      gyroEnabled &&
-      sensorReady.current &&
-      baseline.current
-    ) {
-      inverseBaseline.current
-        .copy(baseline.current)
-        .invert()
-
-      relativeSensor.current
-        .copy(inverseBaseline.current)
-        .multiply(latestSensor.current)
-
-      targetQuaternion.current
-        .copy(touchQuaternion.current)
-        .multiply(relativeSensor.current)
-    } else {
-      targetQuaternion.current.copy(
-        touchQuaternion.current,
-      )
-    }
 
     // Frame-rate independent smoothing.
     const smoothing =
